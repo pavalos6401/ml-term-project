@@ -2,57 +2,65 @@
 """This module provies utilities for using/manipulating the dataset."""
 
 from pathlib import Path
-from typing import Any, Union
 
 import numpy as np
 from PIL import Image
 from sklearn.utils import Bunch
 
 
-def __load_class(path: Path, dataset: dict, classification: int) -> None:
-    """Helper function to load a single classification.
+def __load_class(container_path: Path, dataset: dict, target: int) -> None:
+    """Helper function to load all files of a single classification, in-place.
 
     Args:
-        path (Path): Path to directory containing the data files.
+        container_path (Path): Path to directory containing the data files.
         dataset (dict): Dataset instance to append data to.
-        classification (int): The target classification of the data being loaded.
+        target (int): The target classification of the data being loaded.
     """
 
-    for f in path.iterdir():
+    for f in container_path.iterdir():
         dataset["filename"].append(f.name)
         dataset["data"].append(np.array(Image.open(f)))
-        dataset["classification"].append(classification)
+        dataset["target"].append(target)
 
 
-def load_star_galaxy_dataset(
-    as_bunch: bool = False,
-) -> Union[dict[str, Any], Bunch]:
+def load_star_galaxy_dataset() -> Bunch:
     """Loads and returns the star-galaxy dataset (classification).
 
-    Args:
-        as_bunch (bool): Optional. Return the dataset as an sklearn Bunch object.
-
     Returns:
-        data: Dictionary-like object.
+        data: Dictionary-like object, with the following attributes.
 
-        Keys for the dataset:
-            "filename": Name of image file of data (str).
-            "data": Image file represented as array (np.array).
-            "classification": Target classification for data (0: star, 1: galaxy).
+            DESCR (str): Description of this dataset.
+            filename (np.array): Name of image file of data.
+            data (np.array): Image file represented as array.
+            target (np.array): Target classification for data.
+            target_names (np.array): The names of target classes.
     """
 
-    dataset: dict[str, Any] = {}
-    dataset["description"] = (
-        "This is a simple dataset consisting of ~3000 64x64 images of stars"
-        "and ~1000 images of galaxies. The images were captured by the"
-        "in-house 1.3m telescope of the observatory situated in Devasthal,"
+    # Set up base dataset without the data
+    dataset: dict = {}
+    dataset["DESCR"] = (
+        "This is a simple dataset consisting of ~3000 64x64 images of stars "
+        "and ~1000 images of galaxies. The images were captured by the "
+        "in-house 1.3m telescope of the observatory situated in Devasthal, "
         "Nainital, India."
     )
     dataset["filename"] = []
     dataset["data"] = []
-    dataset["classification"] = []
+    dataset["target"] = []
+    dataset["target_names"] = np.array(["star", "galaxy"])
 
-    __load_class(path=Path("./dataset/star/"), dataset=dataset, classification=0)
-    __load_class(path=Path("./dataset/galaxy/"), dataset=dataset, classification=1)
+    # Load each class of data into the dataset
+    dataset_path: Path = Path("./dataset")
+    for target, target_name in enumerate(dataset["target_names"]):
+        __load_class(
+            container_path=(dataset_path / target_name),
+            dataset=dataset,
+            target=target,
+        )
 
-    return Bunch(**dataset) if as_bunch else dataset
+    # Convert dataset attributes to numpy arrays
+    dataset["filename"] = np.array(dataset["filename"])
+    dataset["data"] = np.array(dataset["data"])
+    dataset["target"] = np.array(dataset["target"])
+
+    return Bunch(**dataset)
