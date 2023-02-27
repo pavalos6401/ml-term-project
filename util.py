@@ -4,8 +4,12 @@
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image as Im
 from sklearn.utils import Bunch
+
+
+_MODULE_PATH = Path(__file__).parent
+"""Parent directory of this python module."""
 
 
 def __load_class(container_path: Path, dataset: dict, target: int) -> None:
@@ -19,7 +23,7 @@ def __load_class(container_path: Path, dataset: dict, target: int) -> None:
 
     for f in container_path.iterdir():
         dataset["filename"].append(f.name)
-        dataset["data"].append(np.array(Image.open(f)))
+        dataset["data"].append(np.asarray(Im.open(f).convert("L")).flatten())
         dataset["target"].append(target)
 
 
@@ -47,10 +51,10 @@ def load_star_galaxy_dataset() -> Bunch:
     dataset["filename"] = []
     dataset["data"] = []
     dataset["target"] = []
-    dataset["target_names"] = np.array(["star", "galaxy"])
+    dataset["target_names"] = np.asarray(["star", "galaxy"])
 
     # Load each class of data into the dataset
-    dataset_path: Path = Path("./dataset")
+    dataset_path: Path = _MODULE_PATH / "dataset"
     for target, target_name in enumerate(dataset["target_names"]):
         __load_class(
             container_path=(dataset_path / target_name),
@@ -59,8 +63,8 @@ def load_star_galaxy_dataset() -> Bunch:
         )
 
     # Convert dataset attributes to numpy arrays
-    dataset["filename"] = np.array(dataset["filename"])
-    dataset["data"] = np.array(dataset["data"])
-    dataset["target"] = np.array(dataset["target"])
+    dataset["filename"] = np.asarray(dataset["filename"])
+    dataset["data"] = np.asarray(dataset["data"])
+    dataset["target"] = np.asarray(dataset["target"])
 
     return Bunch(**dataset)
