@@ -7,7 +7,6 @@ import numpy as np
 from PIL import Image as Im
 from sklearn.utils import Bunch
 
-
 _MODULE_PATH = Path(__file__).parent
 """Parent directory of this python module."""
 
