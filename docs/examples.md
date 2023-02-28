@@ -10,6 +10,7 @@ from sklearn.svm import SVC
 
 from ml_way.util import load_star_galaxy_dataset
 
+
 star_galaxy = load_star_galaxy_dataset()
 
 X_train, X_test, y_train, y_test = train_test_split(

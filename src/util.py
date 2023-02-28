@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 """This module provies utilities for using/manipulating the dataset."""
 
 from pathlib import Path
 
 import numpy as np
-from PIL import Image as Im
+from numpy.typing import ArrayLike
+from PIL import Image
 from sklearn.utils import Bunch
 
 _MODULE_PATH = Path(__file__).parent
@@ -20,9 +20,12 @@ def __load_class(container_path: Path, dataset: dict, target: int) -> None:
         target (int): The target classification of the data being loaded.
     """
 
-    for f in container_path.iterdir():
-        dataset["filename"].append(f.name)
-        dataset["data"].append(np.asarray(Im.open(f).convert("L")).flatten())
+    for file in container_path.iterdir():
+        image: Image.Image = Image.open(file).convert("L")
+        data: ArrayLike = np.asarray(image).flatten()
+
+        dataset["filename"].append(file.name)
+        dataset["data"].append(data)
         dataset["target"].append(target)
 
 
