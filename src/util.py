@@ -22,7 +22,7 @@ def __load_class(container_path: Path, dataset: dict, target: int) -> None:
 
     for file in container_path.iterdir():
         image: Image.Image = Image.open(file).convert("L")
-        data: ArrayLike = np.asarray(image).flatten()
+        data: ArrayLike = np.asarray(image).flatten() / 255.0
 
         dataset["filename"].append(file.name)
         dataset["data"].append(data)
