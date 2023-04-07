@@ -5,6 +5,7 @@ from typing import Union
 
 import numpy as np
 from PIL import Image
+from sklearn.model_selection import train_test_split as _train_test_split
 from sklearn.utils import Bunch
 
 _MODULE_PATH = Path(__file__).parent
@@ -82,3 +83,41 @@ def load_star_galaxy_dataset(return_X_y: bool = False) -> Union[Bunch, tuple]:
         return dataset["data"], dataset["target"]
 
     return Bunch(**dataset)
+
+
+def train_test_split(
+    X,
+    y,
+    test_size=None,
+    train_size=None,
+    random_state=None,
+    shuffle: bool = True,
+    stratify=None,
+) -> list:
+    """Wraps sklearn's :func:`train_test_split` function.
+
+    This ensures the training set has a more fair share of stars to galaxies.
+
+    Args:
+        *arrays: arrays
+        test_size: optional
+        train_size: optional
+        random_state: optional
+        shuffle: optional
+        stratify: optional
+
+    Returns:
+        splitting: list
+    """
+
+    # TODO: Ensure train has a more even number of stars?
+
+    return _train_test_split(
+        X,
+        y,
+        test_size=test_size,
+        train_size=train_size,
+        random_state=random_state,
+        shuffle=shuffle,
+        stratify=stratify,
+    )
