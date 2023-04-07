@@ -1,9 +1,9 @@
 """This module provies utilities for using/manipulating the dataset."""
 
 from pathlib import Path
+from typing import Union
 
 import numpy as np
-from numpy.typing import ArrayLike
 from PIL import Image
 from sklearn.utils import Bunch
 
@@ -21,25 +21,32 @@ def __load_class(container_path: Path, dataset: dict, target: int) -> None:
     """
 
     for file in container_path.iterdir():
-        image: Image.Image = Image.open(file).convert("L")
-        data: ArrayLike = np.asarray(image).flatten() / 255.0
+        image: np.ndarray = np.asarray(Image.open(file).convert("L"))
+        data: np.ndarray = image.flatten() / 255.0
 
         dataset["filename"].append(file.name)
+        dataset["image"].append(image)
         dataset["data"].append(data)
         dataset["target"].append(target)
 
 
-def load_star_galaxy_dataset() -> Bunch:
+def load_star_galaxy_dataset(return_X_y: bool = False) -> Union[Bunch, tuple]:
     """Loads and returns the star-galaxy dataset (classification).
+
+    Args:
+        return_X_y: Return just the data and target if True. Default: `False`.
 
     Returns:
         data: Dictionary-like object, with the following attributes.
 
             DESCR (str): Description of this dataset.
             filename (np.array): Name of image file of data.
+            image (np.array): Image file.
             data (np.array): Image file represented as array.
             target (np.array): Target classification for data.
             target_names (np.array): The names of target classes.
+
+        X, y: If `return_X_y` is True, returns the data and target.
     """
 
     # Set up base dataset without the data
@@ -51,6 +58,7 @@ def load_star_galaxy_dataset() -> Bunch:
         "Nainital, India."
     )
     dataset["filename"] = []
+    dataset["image"] = []
     dataset["data"] = []
     dataset["target"] = []
     dataset["target_names"] = np.asarray(["star", "galaxy"])
@@ -66,7 +74,11 @@ def load_star_galaxy_dataset() -> Bunch:
 
     # Convert dataset attributes to numpy arrays
     dataset["filename"] = np.asarray(dataset["filename"])
+    dataset["image"] = np.asarray(dataset["image"])
     dataset["data"] = np.asarray(dataset["data"])
     dataset["target"] = np.asarray(dataset["target"])
+
+    if return_X_y:
+        return dataset["data"], dataset["target"]
 
     return Bunch(**dataset)
