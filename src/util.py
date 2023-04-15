@@ -18,6 +18,28 @@ __MEMO_DATASET: Union[None, Bunch] = None
 _ARRAY = Union[list, np.ndarray]
 """Type definition for anything array-like."""
 
+STAR = 0
+"""Target value of a star."""
+
+GALAXY = 1
+"""Target value of a galaxy."""
+
+
+def star_galaxy_split(x: _ARRAY, y: _ARRAY) -> tuple[_ARRAY, _ARRAY]:
+    """Split the given dataset into stars and galaxies.
+
+    Args:
+        x: Data points.
+        y: Targets.
+
+    Returns:
+        stars, galaxies: Subsets of data containing only the corresponding class.
+    """
+
+    stars = np.asarray([x.copy() for i, im in enumerate(x) if y[i] == STAR])
+    galaxies = np.asarray([x.copy() for i, im in enumerate(x) if y[i] == GALAXY])
+    return stars, galaxies
+
 
 def train_val_test_split(
     x: _ARRAY,
@@ -80,12 +102,15 @@ def load_star_galaxy_dataset(even: bool = False) -> Bunch:
 
         # Load each class of data into the dataset
         dataset_path: Path = _MODULE_PATH / "dataset"
-        for target, target_name in enumerate(dataset["target_names"]):
-            __load_class(
-                container_path=(dataset_path / target_name),
-                dataset=dataset,
-                target=target,
-            )
+        for target_val, target_name in enumerate(dataset["target_names"]):
+            for file in (dataset_path / target_name).iterdir():
+                image = np.asarray(Image.open(file).convert("L")) / 255
+                data = image.flatten()
+
+                dataset["filename"].append(file.name)
+                dataset["image"].append(image)
+                dataset["data"].append(data)
+                dataset["target"].append(target_val)
 
         # Convert dataset attributes to numpy arrays
         dataset["filename"] = np.asarray(dataset["filename"])
@@ -113,25 +138,6 @@ def load_star_galaxy_dataset(even: bool = False) -> Bunch:
     return __MEMO_DATASET
 
 
-def __load_class(container_path: Path, dataset: dict, target: int) -> None:
-    """Helper function to load all files of a single classification, in-place.
-
-    Args:
-        container_path (Path): Path to directory containing the data files.
-        dataset (dict): Dataset instance to append data to.
-        target (int): The target classification of the data being loaded.
-    """
-
-    for file in container_path.iterdir():
-        image: np.ndarray = np.asarray(Image.open(file).convert("L")) / 255
-        data: np.ndarray = image.flatten()
-
-        dataset["filename"].append(file.name)
-        dataset["image"].append(image)
-        dataset["data"].append(data)
-        dataset["target"].append(target)
-
-
 def __even_data(dataset: Bunch) -> tuple[_ARRAY, _ARRAY, _ARRAY]:
     """Creates a dataset with an even number of star and galaxy images.
 
@@ -139,32 +145,15 @@ def __even_data(dataset: Bunch) -> tuple[_ARRAY, _ARRAY, _ARRAY]:
         image, data, target: Images, flat array data, and targets.
     """
 
-    # Handy-dandy variables
-    STAR: int = np.where(dataset.target_names == "star")
-    GALAXY: int = np.where(dataset.target_names == "galaxy")
+    # Get the stars and galaxies subsets
+    stars, galaxies = star_galaxy_split(dataset.image, dataset.target)
+    k = len(galaxies)
 
-    # Get all the galaxies in the dataset
-    galaxies: np.ndarray = np.asarray(
-        [im.copy() for i, im in enumerate(dataset.image) if dataset.target[i] == GALAXY]
-    )
-    galaxies_num: int = len(galaxies)
-
-    # Sample the same number of stars from the dataset
-    stars: np.ndarray = np.asarray(
-        random.sample(
-            [
-                im.copy()
-                for i, im in enumerate(dataset.image)
-                if dataset.target[i] == STAR
-            ],
-            k=galaxies_num,
-        )
-    )
+    # Make the stars subset a random sample of the same size as the galaxies
+    stars = np.asarray(random.sample(stars, k=k))
 
     # Create the custom subset of the dataset
-    image: np.ndarray = np.concatenate((stars, galaxies), axis=0)
-    data: np.ndarray = np.asarray([im.flatten() for im in image])
-    target: np.ndarray = np.concatenate(
-        (np.full(galaxies_num, STAR), np.full(galaxies_num, GALAXY)), axis=0
-    )
+    image = np.concatenate((stars, galaxies), axis=0)
+    data = np.asarray([im.flatten() for im in image])
+    target = np.concatenate((np.full(k, STAR), np.full(k, GALAXY)), axis=0)
     return image, data, target
