@@ -108,7 +108,7 @@ def load_star_galaxy_dataset(even: bool = False) -> Bunch:
         dataset_path: Path = _MODULE_PATH / "dataset"
         for y, target_name in enumerate(dataset["target_names"]):
             for file in (dataset_path / target_name).iterdir():
-                im = np.asarray(Image.open(file).convert("L")) / 255
+                im = np.asarray(Image.open(file).convert("L"))
                 x = im.flatten()
 
                 dataset["filename"].append(file.name)
