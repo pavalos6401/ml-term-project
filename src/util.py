@@ -1,6 +1,5 @@
 """This module provies utilities for using/manipulating the dataset."""
 
-import random
 from pathlib import Path
 from typing import Union
 
@@ -36,9 +35,13 @@ def star_galaxy_split(x: _ARRAY, y: _ARRAY) -> tuple[_ARRAY, _ARRAY]:
         stars, galaxies: Subsets of data containing only the corresponding class.
     """
 
-    stars = np.asarray([x.copy() for i, im in enumerate(x) if y[i] == STAR])
-    galaxies = np.asarray([x.copy() for i, im in enumerate(x) if y[i] == GALAXY])
-    return stars, galaxies
+    stars, galaxies = [], []
+    for i, im in enumerate(x):
+        if y[i] == STAR:
+            stars.append(im)
+        elif y[i] == GALAXY:
+            galaxies.append(im)
+    return np.asarray(stars), np.asarray(galaxies)
 
 
 def train_val_test_split(
@@ -147,13 +150,13 @@ def __even_data(dataset: Bunch) -> tuple[_ARRAY, _ARRAY, _ARRAY]:
 
     # Get the stars and galaxies subsets
     stars, galaxies = star_galaxy_split(dataset.image, dataset.target)
-    k = len(galaxies)
+    size = len(galaxies)
 
     # Make the stars subset a random sample of the same size as the galaxies
-    stars = np.asarray(random.sample(stars, k=k))
+    stars = stars[np.random.choice(len(stars), size=size, replace=False)]
 
     # Create the custom subset of the dataset
     image = np.concatenate((stars, galaxies), axis=0)
     data = np.asarray([im.flatten() for im in image])
-    target = np.concatenate((np.full(k, STAR), np.full(k, GALAXY)), axis=0)
+    target = np.concatenate((np.full(size, STAR), np.full(size, GALAXY)), axis=0)
     return image, data, target
