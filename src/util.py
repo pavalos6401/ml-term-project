@@ -38,9 +38,9 @@ def star_galaxy_split(x: _ARRAY, y: _ARRAY) -> tuple[_ARRAY, _ARRAY]:
     stars, galaxies = [], []
     for i, im in enumerate(x):
         if y[i] == STAR:
-            stars.append(im)
+            stars.append(im.copy())
         elif y[i] == GALAXY:
-            galaxies.append(im)
+            galaxies.append(im.copy())
     return np.asarray(stars), np.asarray(galaxies)
 
 
@@ -56,9 +56,9 @@ def train_val_test_split(
        x: Data points.
        y: Targets.
        train_size: Size of the training subset. Proportional to the entire
-           dataset. Default: 0.8
+           dataset. Default: `0.8`.
        test_size: Size of the test subset. Proportional to the remainder after
-           splitting to find the training subset. Default: 0.5
+           splitting to find the training subset. Default: `0.5`.
 
     Returns:
         x_train, x_val, x_test, y_train, y_val, y_test: The splits of the dataset.
@@ -74,6 +74,7 @@ def load_star_galaxy_dataset(even: bool = False) -> Bunch:
 
     Args:
         even: Create a dataset with an even number of stars and galaxies.
+            Default: `False`.
 
     Returns:
         data: Dictionary-like object, with the following attributes.
@@ -105,15 +106,15 @@ def load_star_galaxy_dataset(even: bool = False) -> Bunch:
 
         # Load each class of data into the dataset
         dataset_path: Path = _MODULE_PATH / "dataset"
-        for target_val, target_name in enumerate(dataset["target_names"]):
+        for y, target_name in enumerate(dataset["target_names"]):
             for file in (dataset_path / target_name).iterdir():
-                image = np.asarray(Image.open(file).convert("L")) / 255
-                data = image.flatten()
+                im = np.asarray(Image.open(file).convert("L")) / 255
+                x = im.flatten()
 
                 dataset["filename"].append(file.name)
-                dataset["image"].append(image)
-                dataset["data"].append(data)
-                dataset["target"].append(target_val)
+                dataset["image"].append(im)
+                dataset["data"].append(x)
+                dataset["target"].append(y)
 
         # Convert dataset attributes to numpy arrays
         dataset["filename"] = np.asarray(dataset["filename"])
