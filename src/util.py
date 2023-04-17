@@ -1,7 +1,7 @@
 """This module provies utilities for using/manipulating the dataset."""
 
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 from PIL import Image
@@ -49,6 +49,7 @@ def train_val_test_split(
     y: _ARRAY,
     train_size: float = 0.8,
     test_size: float = 0.5,
+    stratify: Optional[_ARRAY] = None,
 ) -> tuple[_ARRAY, _ARRAY, _ARRAY, _ARRAY, _ARRAY, _ARRAY]:
     """Split the given dataset into train, validation, and test subsets.
 
@@ -59,12 +60,16 @@ def train_val_test_split(
            dataset. Default: `0.8`.
        test_size: Size of the test subset. Proportional to the remainder after
            splitting to find the training subset. Default: `0.5`.
+       stratify: If not `None`, data is split in a stratified fashion,
+           using this as the class labels. Only used in training split. Optional.
 
     Returns:
         x_train, x_val, x_test, y_train, y_val, y_test: The splits of the dataset.
     """
 
-    x_train, x_rest, y_train, y_rest = train_test_split(x, y, train_size=train_size)
+    x_train, x_rest, y_train, y_rest = train_test_split(
+        x, y, train_size=train_size, stratify=stratify
+    )
     x_val, x_test, y_val, y_test = train_test_split(x_rest, y_rest, test_size=test_size)
     return x_train, x_val, x_test, y_train, y_val, y_test
 
