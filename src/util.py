@@ -156,28 +156,16 @@ def __even_data(dataset: Bunch) -> tuple[_ARRAY, _ARRAY, _ARRAY]:
 
     # Get the stars and galaxies subsets
     stars, galaxies = star_galaxy_split(dataset.image, dataset.target)
-    gal_temp = []
-    star_temp = []
 
     size = len(galaxies)
 
     # Make the stars subset a random sample of the same size as the galaxies
     stars = stars[np.random.choice(len(stars), size=size, replace=False)]
 
-    for gal in galaxies:
-        for i in range(3):
-            gal_temp.append(np.rot90(gal,i+1))
-    galaxies = np.concatenate((galaxies, gal_temp))
-
-    for star in stars:
-        for i in range(3):
-            star_temp.append(np.rot90(star,i+1))
-    stars = np.concatenate((stars, star_temp))
-
     # Create the custom subset of the dataset
     image = np.concatenate((stars, galaxies), axis=0)
     data = np.asarray([im.flatten() for im in image])
-    target = np.concatenate((np.full(size*4, STAR), np.full(size*4, GALAXY)), axis=0)
+    target = np.concatenate((np.full(size, STAR), np.full(size, GALAXY)), axis=0)
     return image, data, target
 
 #set must be an image
@@ -192,4 +180,6 @@ def rot_and_append(A, A_t):
             temp_t.append(kind_t)
     A = np.concatenate((A, temp))
     A_t = np.concatenate((A_t, temp_t))
+
+    return A, A_t
     
